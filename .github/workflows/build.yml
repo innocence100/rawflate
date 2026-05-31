@@ -3,32 +3,10 @@ name: build
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "0 0 * * 0"
   workflow_dispatch:
 
 jobs:
-  check-update:
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.latest.outputs.tag }}
-      update_needed: ${{ steps.latest.outputs.update_needed }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - id: latest
-        run: |
-          TAG=$(curl -sL https://api.github.com/repos/microsoft/preflate-rs/releases/latest | jq -r .tag_name)
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          CURRENT=$(grep 'tag =' Cargo.toml | sed 's/.*tag = "//;s/".*//')
-          echo "current=$CURRENT  latest=$TAG"
-          if [ "$TAG" != "$CURRENT" ]; then
-            echo "update_needed=1" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
-    needs: check-update
     strategy:
       matrix:
         include:
@@ -45,11 +23,6 @@ jobs:
           fetch-depth: 1
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: update preflate-rs dep
-        if: needs.check-update.outputs.update_needed == '1'
-        run: |
-          sed -i 's/tag = "[^"]*"/tag = "${{ needs.check-update.outputs.tag }}"/' Cargo.toml
 
       - run: cargo build --release
 
