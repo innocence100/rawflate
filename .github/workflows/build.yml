@@ -45,5 +45,8 @@ jobs:
           mv rawflate-windows-latest/rawflate.exe rawflate-windows.exe
       - uses: softprops/action-gh-release@v2
         with:
-          files: rawflate-linux rawflate-macos rawflate-windows.exe
-          fail_on_unmatched: true
+          files: |
+            rawflate-linux
+            rawflate-macos
+            rawflate-windows.exe
+          fail_on_unmatched_files: true
