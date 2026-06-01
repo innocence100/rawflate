@@ -39,20 +39,32 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: read version from Cargo.toml
+        id: version
+        run: |
+          VER=$(grep '^version' Cargo.toml | head -1 | sed 's/.*= *"//;s/".*//')
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
       - uses: actions/download-artifact@v4
-      - name: rename binaries for release
+
+      - name: rename binaries
         shell: bash
         run: |
           mv rawflate-ubuntu-latest/rawflate   rawflate-linux
           mv rawflate-macos-latest/rawflate    rawflate-macos
           mv rawflate-windows-latest/rawflate.exe rawflate-windows.exe
+
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.version.outputs.version }}
           files: |
             rawflate-linux
             rawflate-macos
