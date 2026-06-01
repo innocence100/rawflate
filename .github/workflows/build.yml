@@ -25,7 +25,7 @@ jobs:
       - name: clone preflate-rs (patched fork)
         shell: bash
         run: |
-          git clone --depth 1 --branch raw_format \
+          git clone --depth 1 --branch raw-format \
             https://github.com/innocence100/preflate-rs.git ../preflate-rs
 
       - uses: dtolnay/rust-toolchain@stable
@@ -45,11 +45,12 @@ jobs:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
-      - run: |
+      - name: rename binaries for release
+        shell: bash
+        run: |
           mv rawflate-ubuntu-latest/rawflate   rawflate-linux
           mv rawflate-macos-latest/rawflate    rawflate-macos
           mv rawflate-windows-latest/rawflate.exe rawflate-windows.exe
-        shell: bash
       - uses: softprops/action-gh-release@v2
         with:
           files: |
