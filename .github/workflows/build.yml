@@ -23,6 +23,7 @@ jobs:
           fetch-depth: 1
 
       - name: clone preflate-rs (patched fork)
+        shell: bash
         run: |
           git clone --depth 1 --branch raw_format \
             https://github.com/innocence100/preflate-rs.git ../preflate-rs
@@ -48,6 +49,7 @@ jobs:
           mv rawflate-ubuntu-latest/rawflate   rawflate-linux
           mv rawflate-macos-latest/rawflate    rawflate-macos
           mv rawflate-windows-latest/rawflate.exe rawflate-windows.exe
+        shell: bash
       - uses: softprops/action-gh-release@v2
         with:
           files: |
