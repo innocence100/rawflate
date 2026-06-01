@@ -22,6 +22,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: clone preflate-rs (patched fork)
+        run: |
+          git clone --depth 1 --branch raw-format \
+            https://github.com/innocence100/preflate-rs.git ../preflate-rs
+
       - uses: dtolnay/rust-toolchain@stable
 
       - run: cargo build --release
