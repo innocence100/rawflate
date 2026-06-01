@@ -414,7 +414,6 @@ checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
 [[package]]
 name = "preflate-container"
 version = "0.7.6"
-source = "git+https://github.com/microsoft/preflate-rs?tag=v0.7.6#3bcd33441849a8a25d2b26077128f4e3a88d071b"
 dependencies = [
  "byteorder",
  "crc32fast",
@@ -428,7 +427,6 @@ dependencies = [
 [[package]]
 name = "preflate-rs"
 version = "0.7.6"
-source = "git+https://github.com/microsoft/preflate-rs?tag=v0.7.6#3bcd33441849a8a25d2b26077128f4e3a88d071b"
 dependencies = [
  "bitcode",
  "byteorder",

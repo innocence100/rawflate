@@ -20,6 +20,8 @@ struct Cli {
     output: PathBuf,
 }
 
+// ── JPEG ──
+
 fn encode_jpeg(data: &[u8], output: &mut impl Write) -> Result<(), String> {
     let mut encoded = Vec::new();
     lepton_jpeg::encode_lepton(
@@ -30,9 +32,7 @@ fn encode_jpeg(data: &[u8], output: &mut impl Write) -> Result<(), String> {
     )
     .map_err(|e| format!("Lepton encode: {}", e))?;
     output.write_all(&[0x01]).unwrap();
-    output
-        .write_all(&(data.len() as u32).to_le_bytes())
-        .unwrap();
+    output.write_all(&(data.len() as u32).to_le_bytes()).unwrap();
     output.write_all(&encoded).unwrap();
     Ok(())
 }
@@ -54,13 +54,13 @@ fn decode_jpeg(
     Ok(())
 }
 
+// ── PNG ──
+
 fn encode_png(data: &[u8], output: &mut impl Write) -> Result<(), String> {
-    let config = PreflateContainerConfig::default();
+    let config = PreflateContainerConfig { no_zstd: true, ..Default::default() };
     let mut processor = PreflateContainerProcessor::new(&config, 1, false);
     output.write_all(&[0x02]).unwrap();
-    output
-        .write_all(&(data.len() as u32).to_le_bytes())
-        .unwrap();
+    output.write_all(&(data.len() as u32).to_le_bytes()).unwrap();
     processor
         .process_buffer(data, true, output)
         .map_err(|e| format!("Preflate encode: {}", e))?;
@@ -72,13 +72,32 @@ fn decode_png(
     size: usize,
     output: &mut impl Write,
 ) -> Result<(), String> {
-    let mut container = vec![0u8; size];
-    input.read_exact(&mut container).unwrap();
+    let mut raw = vec![0u8; size];
+    input.read_exact(&mut raw).unwrap();
     let mut processor = RecreateContainerProcessor::new(128 * 1024 * 1024);
     processor
-        .process_buffer(&container, true, output)
+        .process_buffer(&raw, true, output)
         .map_err(|e| format!("Preflate decode: {}", e))?;
     Ok(())
+}
+
+// ── main ──
+
+const JPEG_MAGIC: [u8; 2] = [0xFF, 0xD8];
+const PNG_MAGIC: [u8; 8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+fn detect_format(cursor: &mut Cursor<&[u8]>) -> &'static str {
+    let mut buf = [0u8; 8];
+    if cursor.read_exact(&mut buf).is_err() {
+        return "unknown";
+    }
+    if buf[..2] == JPEG_MAGIC {
+        "jpeg"
+    } else if buf[..8] == PNG_MAGIC {
+        "png"
+    } else {
+        "unknown"
+    }
 }
 
 fn main() {
@@ -109,7 +128,6 @@ fn main() {
             let mut cursor = Cursor::new(input_data.as_slice());
             let mut buf = [0u8; 1];
             cursor.read_exact(&mut buf).unwrap();
-            // read 4-byte LE total_size (total = remaining after header)
             let mut sz = [0u8; 4];
             cursor.read_exact(&mut sz).unwrap();
             let _original = u32::from_le_bytes(sz) as usize;
@@ -129,23 +147,5 @@ fn main() {
     if let Err(e) = result {
         eprintln!("错误: {}", e);
         std::process::exit(1);
-    }
-}
-
-const JPEG_MAGIC: [u8; 2] = [0xFF, 0xD8];
-const PNG_MAGIC: [u8; 8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-
-fn detect_format(cursor: &mut Cursor<&[u8]>) -> &'static str {
-    let mut buf = [0u8; 8];
-    match cursor.read_exact(&mut buf) {
-        Ok(()) => {}
-        Err(_) => return "unknown",
-    }
-    if buf[..2] == JPEG_MAGIC {
-        "jpeg"
-    } else if buf[..8] == PNG_MAGIC {
-        "png"
-    } else {
-        "unknown"
     }
 }

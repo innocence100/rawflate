@@ -1,6 +1,6 @@
 [package]
 name = "rawflate"
-version = "0.1.1"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.89"
 
@@ -9,6 +9,6 @@ name = "rawflate"
 path = "src/main.rs"
 
 [dependencies]
-preflate-container = { git = "https://github.com/microsoft/preflate-rs", tag = "v0.7.6" }
+preflate-container = { path = "../preflate-rs/container" }
 lepton_jpeg = "0.5.1"
 clap = { version = "4", features = ["derive"] }
